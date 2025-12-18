@@ -11,8 +11,8 @@ importers:
   loly-chat:
     dependencies:
       '@lolyjs/core':
-        specifier: 0.2.0-alpha.24
-        version: 0.2.0-alpha.24(react-dom@19.2.3)(react@19.2.3)(socket.io-client@4.8.1)
+        specifier: 0.2.0-alpha.25
+        version: 0.2.0-alpha.25(react-dom@19.2.3)(react@19.2.3)(socket.io-client@4.8.1)
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.7)(react@19.2.3)
@@ -410,8 +410,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.5
     dev: true
 
-  /@lolyjs/core@0.2.0-alpha.24(react-dom@19.2.3)(react@19.2.3)(socket.io-client@4.8.1):
-    resolution: {integrity: sha512-Te7MthYHHzCBmhJrEJEh8O+B7CZCNfYTYPF+Tt9sz2b9B911rJrAYa7t6tpAYuKL/uZ8mvTVjglsdIDFv6HzHA==}
+  /@lolyjs/core@0.2.0-alpha.25(react-dom@19.2.3)(react@19.2.3)(socket.io-client@4.8.1):
+    resolution: {integrity: sha512-hXnjx6pI+8WaHcLE5aC40BvkaGf91ptFezmm8Tw8G0A6SR5qnmvbtha3PVHGd0yQVnmupa/8iSsGtUv6CMB9rg==}
     hasBin: true
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
