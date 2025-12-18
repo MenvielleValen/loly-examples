@@ -68,6 +68,7 @@ export default function RootLayout(props: LayoutProps) {
             <ThemeSwitch />
             <Link
               href={githubUrl}
+              target="_blank"
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-all hover:bg-accent hover:text-foreground hover:border-border/60"
               aria-label="GitHub"
             >
