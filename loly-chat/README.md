@@ -1,41 +1,30 @@
-# Loly Framework Template
+# Loly Chat Example
 
-A modern, production-ready starter template for building applications with [Loly Framework](https://github.com/MenvielleValen/loly-framework).
+A real-time chat application built with [Loly Framework](https://loly-framework.onrender.com/), demonstrating production-ready WebSocket communication, authentication, and real-time features.
 
-## Features
+## Features Demonstrated
 
-- ⚡ **Fast Development** - Hot reload and optimized build with Rspack
+- 🔌 **WebSocket Integration** - Real-time bidirectional communication using Socket.IO
+- 🔐 **Authentication** - Cookie-based user authentication with middleware
+- ⚡ **Server-Side Rendering** - SSR with server hooks for data fetching
 - 🎨 **Modern UI** - Tailwind CSS v4 with dark mode support
-- 🔒 **Type Safe** - Full TypeScript support throughout
-- 📱 **Responsive** - Mobile-first design
-- 🌙 **Theme Support** - Built-in light/dark theme switching
-- 🎯 **Best Practices** - Follows Loly Framework conventions
+- 📡 **API Routes** - RESTful API endpoints with validation
+- 🛡️ **Security** - Rate limiting, CORS, and secure cookie handling
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm 8+ (recommended) or npm/yarn
 
 ### Installation
 
-1. Copy this template to your project directory:
-
 ```bash
-cp -r apps/template my-app
-cd my-app
-```
-
-2. Install dependencies:
-
-```bash
+# Install dependencies
 pnpm install
-```
 
-3. Start the development server:
-
-```bash
+# Start development server
 pnpm dev
 ```
 
@@ -51,234 +40,56 @@ pnpm start
 ## Project Structure
 
 ```
-template/
-├── app/                    # Application routes and pages
-│   ├── layout.tsx          # Root layout component
-│   ├── layout.server.hook.ts  # Layout server-side data
-│   ├── page.tsx            # Home page
-│   ├── page.server.hook.ts # Home page server-side data
-│   ├── styles.css          # Global styles and theme variables
-│   ├── _error.tsx          # Error page
-│   └── _not-found.tsx      # 404 page
-├── components/             # React components
-│   ├── ui/                 # UI components (Button, Card, etc.)
-│   └── shared/             # Shared components (ThemeSwitch, etc.)
-├── lib/                    # Utility functions
-│   └── utils.ts            # Helper functions (cn, etc.)
-├── public/                 # Static files (SEO, assets)
-│   ├── sitemap.xml         # Sitemap for search engines
-│   ├── robots.txt          # Robots.txt for crawlers
-│   └── README.md           # Static files guide
-├── loly.config.ts          # Loly Framework server configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-├── postcss.config.js       # PostCSS configuration
-├── tsconfig.json           # TypeScript configuration
-└── package.json            # Dependencies and scripts
+loly-chat/
+├── app/
+│   ├── api/              # API routes (login, logout, health)
+│   ├── chat/             # Chat page and layout
+│   ├── wss/              # WebSocket routes
+│   ├── layout.tsx        # Root layout
+│   ├── page.tsx          # Home page
+│   └── styles.css        # Global styles
+├── components/
+│   ├── shared/           # Chat components
+│   └── ui/               # Reusable UI components
+└── lib/                  # Utility functions
 ```
 
-## Key Concepts
+## Key Implementation Details
 
-### File-Based Routing
+### WebSocket Events
 
-Pages are created in the `app/` directory. The file structure determines the route:
-
-- `app/page.tsx` → `/`
-- `app/about/page.tsx` → `/about`
-- `app/blog/[id]/page.tsx` → `/blog/:id`
-
-### Server Hooks
-
-Server-side data fetching is done through server hooks:
-
-- `app/layout.server.hook.ts` - Data available to layout and all pages
-- `app/page.server.hook.ts` - Data specific to a page
-
-Example:
-
-```typescript
-// app/page.server.hook.ts
-import type { ServerLoader } from "@lolyjs/core";
-
-export const getServerSideProps: ServerLoader = async () => {
-  return {
-    props: {
-      data: "Hello from server!",
-    },
-    metadata: {
-      title: "My Page",
-      description: "Page description",
-    },
-  };
-};
-```
-
-### Styling
-
-This template uses **Tailwind CSS v4** with a custom theme system. Important rules:
-
-- ❌ **DO NOT** use inline styles in components
-- ✅ **DO** use Tailwind utility classes
-- ✅ **DO** use the `cn()` utility for conditional classes
-- ✅ **DO** define custom styles in `app/styles.css`
-
-Example:
-
-```tsx
-import { cn } from "@/lib/utils";
-
-function MyComponent({ className, isActive }: Props) {
-  return (
-    <div className={cn(
-      "base-classes",
-      isActive && "active-classes",
-      className
-    )}>
-      Content
-    </div>
-  );
-}
-```
-
-### Components
-
-Components are organized in `components/`:
-
-- `components/ui/` - Reusable UI components (Button, Card, etc.)
-- `components/shared/` - Shared application components
-
-All UI components follow these patterns:
-
-- Use `class-variance-authority` for variants
-- Use `cn()` for className merging
-- Accept `className` prop for customization
-- Use `data-slot` attributes for styling hooks
-
-### Theme System
-
-The template includes a complete theme system with:
-
-- Light and dark modes
-- CSS custom properties for colors
-- Theme switcher component
-- Automatic theme persistence
-
-Theme variables are defined in `app/styles.css` and can be customized.
-
-## Customization
-
-### Changing the App Name
-
-Update `app/layout.server.hook.ts`:
-
-```typescript
-props: {
-  appName: "My Awesome App",
-  // ...
-}
-```
-
-### Adding Navigation Items
-
-Update the `navigation` array in `app/layout.server.hook.ts`:
-
-```typescript
-navigation: [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-],
-```
-
-### Customizing Colors
-
-Edit the CSS variables in `app/styles.css`:
-
-```css
-:root {
-  --primary: oklch(0.55 0.22 240);
-  /* ... */
-}
-```
-
-### Adding API Routes
-
-Create files in `app/api/`:
-
-```typescript
-// app/api/hello/route.ts
-import type { ApiContext } from "@lolyjs/core";
-
-export async function GET(ctx: ApiContext) {
-  return ctx.Response({ message: "Hello from API!" });
-}
-```
-
-### Adding WebSocket Routes
-
-Create files in `app/wss/`:
+Real-time chat messages are handled through WebSocket routes with authentication and validation:
 
 ```typescript
 // app/wss/chat/events.ts
-import { defineWssRoute } from "@lolyjs/core";
-
 export default defineWssRoute({
+  auth: async (ctx) => {
+    // Authentication logic
+  },
   events: {
     message: {
+      schema: z.object({ content: z.string() }),
       handler: (ctx) => {
-        ctx.actions.broadcast("message", ctx.data);
+        // Broadcast message to all clients
       },
     },
   },
 });
 ```
 
-### Static Files (SEO & Assets)
+### Authentication Flow
 
-Files in the `public/` directory are served at the root URL. This is perfect for SEO files and static assets:
+User authentication is handled via cookies with middleware:
 
-- `public/sitemap.xml` → `/sitemap.xml`
-- `public/robots.txt` → `/robots.txt`
-- `public/favicon.ico` → `/favicon.ico`
-- `public/assets/logo.png` → `/assets/logo.png`
-
-**Important:** Static files have **priority over dynamic routes**. If a file exists in `public/`, it will be served instead of matching a route.
-
-**Example files included:**
-- `public/sitemap.xml` - Update with your site URLs
-- `public/robots.txt` - Configure for search engines
-
-See `public/README.md` for more details.
-
-## Available Scripts
-
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-
-## Dependencies
-
-### Core
-
-- `@lolyjs/core` - Loly Framework core
-- `react` & `react-dom` - React library
-
-### UI
-
-- `tailwindcss` - Utility-first CSS framework
-- `class-variance-authority` - Component variants
-- `clsx` & `tailwind-merge` - Class name utilities
-- `lucide-react` - Icon library
-
-### UI Primitives
-
-- `@radix-ui/react-slot` - Slot component
-- `@radix-ui/react-switch` - Switch component
+- Login: `POST /api/user/login` - Creates authenticated session
+- Logout: `POST /api/user/logout` - Clears session
+- Middleware: Validates user on each request
 
 ## Learn More
 
-- [Loly Framework Documentation](https://github.com/MenvielleValen/loly-framework/blob/main/packages/loly-core/README.md)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [React Documentation](https://react.dev)
+- [Loly Framework Documentation](https://loly-framework.onrender.com/)
+- [Loly Framework GitHub](https://github.com/MenvielleValen/loly-framework)
+- [Example Source Code](https://github.com/MenvielleValen/loly-examples/tree/main/loly-chat)
 
 ## License
 

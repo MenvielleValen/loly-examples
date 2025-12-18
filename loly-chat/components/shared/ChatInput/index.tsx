@@ -24,7 +24,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Escribe un mensaje..."
+          placeholder="Type a message..."
           className="flex-1 px-4 py-3 rounded-full bg-card border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all text-sm md:text-base"
         />
         <Button
@@ -34,7 +34,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
           disabled={!message.trim()}
         >
           <Send className="h-5 w-5" />
-          <span className="sr-only">Enviar mensaje</span>
+          <span className="sr-only">Send message</span>
         </Button>
       </form>
     )

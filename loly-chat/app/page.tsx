@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "@lolyjs/core/components";
 
@@ -24,7 +24,7 @@ export default function HomePage(props: HomePageProps) {
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-accent/50 px-4 py-1.5 text-sm text-accent-foreground backdrop-blur-sm">
               <Sparkles className="size-4" />
-              Welcome to Loly Chat
+              Built with Loly Framework
             </div>
             <h1 className="text-5xl font-bold tracking-tight text-balance text-foreground sm:text-7xl leading-[1.1]">
               The Modern Chat Application for{" "}
@@ -33,9 +33,9 @@ export default function HomePage(props: HomePageProps) {
               </span>
             </h1>
             <p className="mt-8 text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto text-pretty">
-              Build production-ready chat applications with native WebSocket
-              support, route-level middlewares, and enterprise-grade features.
-              Start shipping in minutes.
+              A production-ready example showcasing Loly Framework's native WebSocket
+              support, route-level middlewares, and enterprise-grade features. Built
+              with real-time communication, authentication, and modern React patterns.
             </p>
             <div className="mt-12 flex flex-wrap justify-center gap-4">
               <Link
@@ -49,13 +49,27 @@ export default function HomePage(props: HomePageProps) {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
+                href="https://loly-framework.onrender.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "default" }),
+                  "h-12 px-8 text-base font-medium"
+                )}
+              >
+                Explore Loly Framework
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Link>
+              <Link
                 href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={cn(
                   buttonVariants({ size: "lg", variant: "outline" }),
                   "h-12 px-8 text-base font-medium"
                 )}
               >
-                View Documentation
+                View on GitHub
               </Link>
             </div>
           </div>

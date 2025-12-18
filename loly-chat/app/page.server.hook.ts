@@ -13,31 +13,31 @@ export const getServerSideProps: ServerLoader = async () => {
     props: {},
     metadata: {
       // Page-specific title and description (overrides layout defaults)
-      title: "Loly Framework | Modern Full-Stack React Framework",
+      title: "Loly Chat Example | Real-time Chat App Built with Loly Framework",
       description:
-        "Build modern web applications with Loly Framework. Full-stack React with SSR, SSG, API routes, WebSockets, and more.",
+        "A production-ready example application showcasing Loly Framework's real-time WebSocket communication, authentication, and modern React patterns. Built with Loly Framework - a modern full-stack React framework.",
       
       // Canonical URL for this page
       canonical: "/",
       
       // Open Graph - inherits og:type, og:siteName from layout, but overrides title/description
       openGraph: {
-        title: "Loly Framework | Modern Full-Stack React Framework",
-        description: "Build modern web applications with Loly Framework. Full-stack React with SSR, SSG, API routes, WebSockets, and more.",
+        title: "Loly Chat Example | Real-time Chat App Built with Loly Framework",
+        description: "A production-ready example application showcasing Loly Framework's real-time WebSocket communication, authentication, and modern React patterns.",
         url: "/",
       },
       
       // Twitter Card - inherits card type from layout, but overrides content
       twitter: {
-        title: "Loly Framework | Modern Full-Stack React Framework",
-        description: "Build modern web applications with Loly Framework.",
+        title: "Loly Chat Example | Built with Loly Framework",
+        description: "A production-ready example showcasing Loly Framework's real-time WebSocket communication and authentication.",
       },
       
       // Additional page-specific meta tags
       metaTags: [
         {
           name: "keywords",
-          content: "loly, framework, react, full-stack, ssr, ssg, websocket, typescript",
+          content: "loly framework, react, full-stack, websocket, real-time chat, example app, typescript, ssr, authentication",
         },
       ],
     },

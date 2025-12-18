@@ -23,15 +23,24 @@ export const beforeServerData: RouteMiddleware[] = [
  * Pages can override specific fields, but layout metadata provides defaults.
  */
 export const getServerSideProps: ServerLoader = async (ctx) => {
+  // Safely parse user from cookie format "name-id"
+  let user = { id: "", name: "" };
+  if (ctx.locals.user) {
+    const parts = ctx.locals.user.split("-");
+    if (parts.length >= 2) {
+      user = {
+        name: parts[0] || "",
+        id: parts.slice(1).join("-") || "", // Handle IDs that might contain dashes
+      };
+    }
+  }
+
   return {
     props: {
       // App name - available in layout and all pages
       appName: "Loly Chat",
 
-      user: {
-        id: ctx.locals.user?.split("-")[1],
-        name: ctx.locals.user?.split("-")[0],
-      },
+      user,
 
       // Navigation items - customize as needed
       navigation: [
@@ -46,7 +55,7 @@ export const getServerSideProps: ServerLoader = async (ctx) => {
     metadata: {
       // Site-wide defaults
       description:
-        "A modern full-stack React framework with native WebSocket support.",
+        "A production-ready example application showcasing Loly Framework's real-time WebSocket communication, authentication, and modern React patterns.",
       lang: "en",
       robots: "index, follow",
       themeColor: "#0a0a0a",
@@ -54,7 +63,7 @@ export const getServerSideProps: ServerLoader = async (ctx) => {
       // Open Graph defaults (site-wide)
       openGraph: {
         type: "website",
-        siteName: "Loly App",
+        siteName: "Loly Chat Example",
         locale: "en_US",
       },
 

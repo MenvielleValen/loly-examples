@@ -4,6 +4,9 @@ import { ChatInput } from "../ChatInput";
 import { Socket } from "socket.io-client";
 import { lolySocket } from "@lolyjs/core/sockets";
 
+/**
+ * Message interface for chat messages.
+ */
 interface Message {
   id: string;
   content: string;
@@ -19,27 +22,46 @@ type ChatProps = {
   };
 };
 
+/**
+ * Chat component - Real-time chat interface using WebSocket.
+ * 
+ * Features:
+ * - WebSocket connection to /chat namespace
+ * - Real-time message broadcasting
+ * - Connection status management
+ * - Duplicate message prevention
+ * - Error handling
+ * 
+ * @param user - Authenticated user object with id and name
+ */
 export const Chat = ({ user }: ChatProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
+  /**
+   * Initialize WebSocket connection and set up event listeners.
+   * Reconnects when user changes.
+   */
   useEffect(() => {
-    // Connect to namespace with auth
+    // Connect to WebSocket namespace
     const ws = lolySocket("/chat", {});
 
     setSocket(ws);
     setIsConnected(false);
 
+    // Connection established
     ws.on("connect", () => {
       console.log("Connected to chat namespace");
       setIsConnected(true);
     });
 
+    // Connection lost
     ws.on("disconnect", () => {
       setIsConnected(false);
     });
 
+    // Receive new message from server
     ws.on("message", (data) => {
       console.log("message", data);
       setMessages((prev) => {
@@ -50,17 +72,22 @@ export const Chat = ({ user }: ChatProps) => {
       });
     });
 
-    // Listen for framework errors
+    // Listen for framework errors (validation errors, etc.)
     ws.on("__loly:error", (error) => {
       console.error("Error:", error.code, error.message);
     });
 
-    // Cleanup on unmount
+    // Cleanup: close connection on unmount
     return () => {
       ws.close();
     };
   }, [user]);
 
+  /**
+   * Send a message to the chat.
+   * 
+   * @param message - Message content to send
+   */
   const handleSendMessage = (message: string) => {
     if (socket && socket.connected) {
       socket.emit("message", {
@@ -76,7 +103,7 @@ export const Chat = ({ user }: ChatProps) => {
       <div className="flex flex-col items-center justify-center h-[90vh] bg-gradient-to-br from-accent via-background to-primary/5">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">Conectando al chat...</p>
+          <p className="text-muted-foreground">Connecting to chat...</p>
         </div>
       </div>
     );
