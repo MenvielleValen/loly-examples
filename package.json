@@ -1,0 +1,12 @@
+{
+  "name": "loly-examples",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "dev": "pnpm --filter loly-chat dev",
+    "build": "pnpm --filter loly-chat build",
+    "start": "pnpm --filter loly-chat start"
+  }
+}
+
