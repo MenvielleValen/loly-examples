@@ -1,6 +1,6 @@
 # Loly Chat Example
 
-A real-time chat application built with [Loly Framework](https://loly-framework.onrender.com/), demonstrating production-ready WebSocket communication, authentication, and real-time features.
+A real-time chat application built with [Loly Framework](https://loly.dev/), demonstrating production-ready WebSocket communication, authentication, and real-time features.
 
 ## Features Demonstrated
 
@@ -87,7 +87,7 @@ User authentication is handled via cookies with middleware:
 
 ## Learn More
 
-- [Loly Framework Documentation](https://loly-framework.onrender.com/)
+- [Loly Framework Documentation](https://loly.dev/)
 - [Loly Framework GitHub](https://github.com/MenvielleValen/loly-framework)
 - [Example Source Code](https://github.com/MenvielleValen/loly-examples/tree/main/loly-chat)
 

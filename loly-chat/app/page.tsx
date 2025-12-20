@@ -49,7 +49,7 @@ export default function HomePage(props: HomePageProps) {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
-                href="https://loly-framework.onrender.com/"
+                href="https://loly.dev/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
