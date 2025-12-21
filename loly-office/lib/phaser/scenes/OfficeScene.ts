@@ -727,12 +727,16 @@ export class OfficeScene {
   removePlayer(playerId: string): void {
     const sprite = this.players.get(playerId);
     const nameText = this.playerNames.get(playerId);
+    const chatBubble = this.chatBubbles.get(playerId);
     
     if (sprite) {
       sprite.destroy();
     }
     if (nameText) {
       nameText.destroy();
+    }
+    if (chatBubble) {
+      chatBubble.destroy();
     }
     
     this.players.delete(playerId);
