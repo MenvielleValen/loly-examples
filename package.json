@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "pnpm --filter loly-chat dev",
     "build": "pnpm --filter loly-chat build",
-    "start": "pnpm --filter loly-chat start"
+    "start": "pnpm --filter loly-chat start",
+    "start-tic-tac-toe": "pnpm --filter loly-tic-tac-toe start"
   }
 }
 

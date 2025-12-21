@@ -1,69 +1,82 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lolySocket } from "@lolyjs/core/sockets";
 import type { Socket } from "socket.io-client";
 import type { Player, ChatMessage, OfficeObject } from "@/lib/office/types";
-import {
-  CANVAS_WIDTH,
-  CANVAS_HEIGHT,
-  PLAYER_SPEED,
-  PLAYER_SIZE,
-  PLAYER_WIDTH,
-  PLAYER_HEIGHT,
-  MOVEMENT_UPDATE_INTERVAL,
-  CHAT_BUBBLE_DURATION,
-  DEFAULT_OFFICE_OBJECTS,
-  getPlayerColor,
-} from "@/lib/office/constants";
-import {
-  checkPlayerCollision,
-  clamp,
-  loadImage,
-  loadImages,
-  findNearestInteractiveObject,
-} from "@/lib/office/utils";
-import { SPRITE_PATHS } from "@/lib/office/constants";
 
 interface OfficeCanvasProps {
   user: { id: string; name: string };
 }
 
 export function OfficeCanvas({ user }: OfficeCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | undefined>(undefined);
+  const phaserContainerRef = useRef<HTMLDivElement>(null);
+  const phaserGameRef = useRef<any>(null); // PhaserGame type, loaded dynamically
   const socketRef = useRef<Socket | null>(null);
-  const lastMovementUpdateRef = useRef<number>(0);
 
   // Game state
   const [players, setPlayers] = useState<Map<string, Player>>(new Map());
   const [chatMessages, setChatMessages] = useState<Map<string, ChatMessage>>(new Map());
-  const [objects] = useState<OfficeObject[]>(DEFAULT_OFFICE_OBJECTS);
   const [isConnected, setIsConnected] = useState(false);
+  const [phaserReady, setPhaserReady] = useState(false);
 
   // Local player state
-  const [localPlayerPos, setLocalPlayerPos] = useState({ x: 100, y: 100 });
   const [localPlayerSitting, setLocalPlayerSitting] = useState<{ isSitting: boolean; sittingOn?: string }>({ isSitting: false });
-  const [keys, setKeys] = useState<Set<string>>(new Set());
   const [currentChatInput, setCurrentChatInput] = useState("");
 
-  // Camera offset (follows local player)
-  const [camera, setCamera] = useState({ x: 0, y: 0 });
-
-  // Sprites
-  const [sprites, setSprites] = useState<Map<string, HTMLImageElement>>(new Map());
-  const [spritesLoaded, setSpritesLoaded] = useState(false);
-
-  // Load sprites on mount
+  // Initialize Phaser (client-side only)
   useEffect(() => {
-    // Try to load sprites, but continue even if they fail (fallback to colored rectangles)
-    loadImages(SPRITE_PATHS)
-      .then((loadedSprites) => {
-        setSprites(loadedSprites);
-        setSpritesLoaded(true);
-      })
-      .catch((error) => {
-        console.warn("Failed to load some sprites, using fallback rendering", error);
-        setSpritesLoaded(true); // Continue anyway
-      });
+    // Only run on client
+    if (typeof window === "undefined") return;
+    if (phaserGameRef.current) return;
+
+    // Wait for container to be available
+    const initPhaser = async () => {
+      // Wait for container element to exist
+      let container = document.getElementById("phaser-container");
+      if (!container) {
+        // Retry after a short delay
+        setTimeout(initPhaser, 50);
+        return;
+      }
+
+      try {
+        console.log("Initializing Phaser...");
+        // Dynamic import to avoid SSR
+        const { PhaserGame } = await import("@/lib/phaser/PhaserGame");
+        const game = new PhaserGame();
+        phaserGameRef.current = game;
+        await game.init("phaser-container");
+        console.log("Phaser initialized, waiting for scene...");
+
+        // Wait for scene to be ready
+        let attempts = 0;
+        const maxAttempts = 50; // 5 seconds max
+        const checkScene = setInterval(() => {
+          attempts++;
+          const scene = game.getScene();
+          if (scene && scene.scene?.isActive()) {
+            console.log("Phaser scene is ready!");
+            setPhaserReady(true);
+            clearInterval(checkScene);
+          } else if (attempts >= maxAttempts) {
+            console.warn("Phaser scene did not become ready in time");
+            clearInterval(checkScene);
+          }
+        }, 100);
+      } catch (error) {
+        console.error("Failed to load Phaser:", error);
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(initPhaser, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (phaserGameRef.current) {
+        phaserGameRef.current.destroy();
+        phaserGameRef.current = null;
+      }
+    };
   }, []);
 
   // WebSocket connection
@@ -89,11 +102,30 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
       data.players.forEach((p) => playersMap.set(p.id, p));
       setPlayers(playersMap);
 
-      // Set local player position from server
-      const localPlayer = data.players.find((p) => p.id === user.id);
-      if (localPlayer) {
-        setLocalPlayerPos({ x: localPlayer.x, y: localPlayer.y });
-      }
+      // Initialize Phaser scene with players (wait for scene AND assets to be ready)
+      const initPhaser = () => {
+        const scene = phaserGameRef.current?.getScene();
+        if (scene && phaserReady) {
+          // Check if textures are loaded
+          const texturesReady = scene.textures && 
+            scene.textures.exists("luis-walk") && 
+            scene.textures.exists("sofia-walk");
+          
+          if (texturesReady) {
+            scene.setOfficeObjects(data.objects);
+            data.players.forEach((player) => {
+              scene.addPlayer(player, player.id === user.id);
+            });
+          } else {
+            // Retry after a short delay if textures not ready
+            setTimeout(initPhaser, 100);
+          }
+        } else if (!phaserReady) {
+          // Retry after a short delay
+          setTimeout(initPhaser, 100);
+        }
+      };
+      initPhaser();
     });
 
     ws.on("player_joined", (data: { player: Player }) => {
@@ -102,6 +134,12 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
         next.set(data.player.id, data.player);
         return next;
       });
+
+      // Add player to Phaser scene
+      const scene = phaserGameRef.current?.getScene();
+      if (scene && phaserReady) {
+        scene.addPlayer(data.player, data.player.id === user.id);
+      }
     });
 
     ws.on("player_leave", (data: { playerId: string }) => {
@@ -115,23 +153,34 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
         next.delete(data.playerId);
         return next;
       });
+
+      // Remove player from Phaser scene
+      const scene = phaserGameRef.current?.getScene();
+      if (scene && phaserReady) {
+        scene.removePlayer(data.playerId);
+      }
     });
 
-    ws.on("player_move", (data: { playerId: string; x: number; y: number }) => {
-      if (data.playerId === user.id) return; // Skip local player updates (we use local position)
+    ws.on("player_move", (data: { playerId: string; x: number; y: number; animation?: string }) => {
+      if (data.playerId === user.id) return; // Skip local player updates (Phaser handles it)
 
-      // Update player position directly (more frequent updates make this smooth enough)
+      // Update player position in state and Phaser
       setPlayers((prev) => {
         const next = new Map(prev);
         const player = next.get(data.playerId);
         if (player) {
-          // Update existing player
           player.x = data.x;
           player.y = data.y;
+          if (data.animation) {
+            player.animation = data.animation;
+          }
           next.set(data.playerId, player);
-        } else {
-          // Player doesn't exist, but this shouldn't happen
-          // They should have been added on player_joined
+
+          // Update player position in Phaser
+          const scene = phaserGameRef.current?.getScene();
+          if (scene && phaserReady) {
+            scene.updatePlayer(player);
+          }
         }
         return next;
       });
@@ -144,14 +193,11 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
         return next;
       });
 
-      // Remove chat message after duration
-      setTimeout(() => {
-        setChatMessages((prev) => {
-          const next = new Map(prev);
-          next.delete(data.playerId);
-          return next;
-        });
-      }, CHAT_BUBBLE_DURATION);
+      // Show chat bubble in Phaser
+      const scene = phaserGameRef.current?.getScene();
+      if (scene && phaserReady) {
+        scene.showChatBubble(data.playerId, data);
+      }
     });
 
     ws.on("player_sit", (data: { playerId: string; objectId: string; action: 'sit' | 'stand'; x: number; y: number }) => {
@@ -164,6 +210,12 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
           player.isSitting = data.action === 'sit';
           player.sittingOn = data.action === 'sit' ? data.objectId : undefined;
           next.set(data.playerId, player);
+
+          // Update player in Phaser
+          const scene = phaserGameRef.current?.getScene();
+          if (scene && phaserReady) {
+            scene.updatePlayer(player);
+          }
         }
         return next;
       });
@@ -174,7 +226,6 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
           isSitting: data.action === 'sit',
           sittingOn: data.action === 'sit' ? data.objectId : undefined,
         });
-        setLocalPlayerPos({ x: data.x, y: data.y });
       }
     });
 
@@ -185,323 +236,99 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
     return () => {
       ws.close();
     };
-  }, [user.id]);
+  }, [user.id, phaserReady]);
 
-  // Keyboard input handling
+  // Setup Phaser scene callbacks
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return; // Don't capture if typing in input
+    if (!phaserReady || !isConnected || !socketRef.current) return;
 
-      setKeys((prev) => {
-        const next = new Set(prev);
-        next.add(e.key.toLowerCase());
-        return next;
-      });
-    };
+    const scene = phaserGameRef.current?.getScene();
+    if (!scene) return;
 
-    const handleKeyUp = (e: KeyboardEvent) => {
-      setKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(e.key.toLowerCase());
-        return next;
-      });
-    };
+    // Set local player ID
+    scene.setLocalPlayerId(user.id);
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    // Setup movement callback
+    scene.setMovementCallback((x: number, y: number, animation?: string) => {
+      if (socketRef.current?.connected && !localPlayerSitting.isSitting) {
+        socketRef.current.emit("player_move", { x, y, animation });
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
-
-  // Handle sit/stand with E key
-  useEffect(() => {
-    if (!isConnected || !socketRef.current) return;
-
-    const handleSitKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== 'e' || e.target instanceof HTMLInputElement) return;
-      
-      if (localPlayerSitting.isSitting && localPlayerSitting.sittingOn) {
-        // Stand up
-        socketRef.current?.emit("player_sit", {
-          objectId: localPlayerSitting.sittingOn,
-          action: 'stand',
-        });
-      } else {
-        // Find nearest chair
-      const nearestChair = findNearestInteractiveObject(
-        localPlayerPos.x + PLAYER_WIDTH / 2,
-        localPlayerPos.y + PLAYER_HEIGHT / 2,
-        objects,
-        50
-      );
-
-        if (nearestChair && nearestChair.type === 'chair') {
-          socketRef.current?.emit("player_sit", {
-            objectId: nearestChair.id,
-            action: 'sit',
-          });
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleSitKey);
-    return () => window.removeEventListener("keydown", handleSitKey);
-  }, [isConnected, localPlayerPos, localPlayerSitting, objects]);
-
-  // Movement logic (disabled when sitting)
-  useEffect(() => {
-    if (!isConnected || localPlayerSitting.isSitting) return;
-
-    const interval = setInterval(() => {
-      let dx = 0;
-      let dy = 0;
-
-      // Arrow keys or WASD
-      if (keys.has("arrowleft") || keys.has("a")) dx -= PLAYER_SPEED;
-      if (keys.has("arrowright") || keys.has("d")) dx += PLAYER_SPEED;
-      if (keys.has("arrowup") || keys.has("w")) dy -= PLAYER_SPEED;
-      if (keys.has("arrowdown") || keys.has("s")) dy += PLAYER_SPEED;
-
-      if (dx !== 0 || dy !== 0) {
-        setLocalPlayerPos((prev) => {
-          let newX = prev.x + dx;
-          let newY = prev.y + dy;
-
-          // Boundary check
-          newX = clamp(newX, 0, 2000 - PLAYER_WIDTH);
-          newY = clamp(newY, 0, 1500 - PLAYER_HEIGHT);
-
-          // Collision check
-          if (checkPlayerCollision(newX, newY, objects)) {
-            // Try X movement only
-            const newXOnly = clamp(prev.x + dx, 0, 2000 - PLAYER_WIDTH);
-            if (!checkPlayerCollision(newXOnly, prev.y, objects)) {
-              newX = newXOnly;
-              newY = prev.y;
-            } else {
-              // Try Y movement only
-              const newYOnly = clamp(prev.y + dy, 0, 1500 - PLAYER_HEIGHT);
-              if (!checkPlayerCollision(prev.x, newYOnly, objects)) {
-                newX = prev.x;
-                newY = newYOnly;
-              } else {
-                // Can't move
-                return prev;
-              }
-            }
+        // Update local player in state
+        setPlayers((prev) => {
+          const next = new Map(prev);
+          const player = next.get(user.id) || { id: user.id, name: user.name, x, y };
+          player.x = x;
+          player.y = y;
+          if (animation) {
+            player.animation = animation;
           }
-
-          return { x: newX, y: newY };
+          next.set(user.id, player);
+          return next;
         });
       }
-    }, 16); // ~60fps
-
-    return () => clearInterval(interval);
-  }, [keys, isConnected, objects, localPlayerSitting.isSitting]);
-
-  // Send movement updates to server (throttled)
-  useEffect(() => {
-    if (!isConnected || !socketRef.current) return;
-
-    const now = Date.now();
-    if (now - lastMovementUpdateRef.current >= MOVEMENT_UPDATE_INTERVAL) {
-      socketRef.current.emit("player_move", {
-        x: localPlayerPos.x,
-        y: localPlayerPos.y,
-      });
-      lastMovementUpdateRef.current = now;
-
-      // Update local player in players map
-      setPlayers((prev) => {
-        const next = new Map(prev);
-        const player = next.get(user.id) || { id: user.id, name: user.name, x: 0, y: 0 };
-        player.x = localPlayerPos.x;
-        player.y = localPlayerPos.y;
-        next.set(user.id, player);
-        return next;
-      });
-    }
-  }, [localPlayerPos, isConnected, user.id, user.name]);
-
-  // Update camera to follow local player
-  useEffect(() => {
-    setCamera({
-      x: localPlayerPos.x - CANVAS_WIDTH / 2,
-      y: localPlayerPos.y - CANVAS_HEIGHT / 2,
     });
-  }, [localPlayerPos]);
 
-  // Render function
-  const render = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Apply camera transform
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
-
-    // Draw floor (simple colored background)
-    ctx.fillStyle = "#e8e8e8";
-    ctx.fillRect(0, 0, 2000, 1500);
-
-    // Draw grid pattern (optional)
-    ctx.strokeStyle = "#d0d0d0";
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= 2000; x += 50) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 1500);
-      ctx.stroke();
-    }
-    for (let y = 0; y <= 1500; y += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(2000, y);
-      ctx.stroke();
-    }
-
-    // Draw office objects
-    objects.forEach((obj) => {
-      const sprite = sprites.get(obj.type === "desk" ? "desk" : obj.type === "chair" ? "chair" : "wall");
-      
-      if (sprite) {
-        // Calculate aspect ratio to preserve sprite proportions
-        const spriteAspect = sprite.width / sprite.height;
-        const objAspect = obj.width / obj.height;
-        
-        let drawWidth = obj.width;
-        let drawHeight = obj.height;
-        let drawX = obj.x;
-        let drawY = obj.y;
-        
-        if (spriteAspect > objAspect) {
-          // Sprite is wider - fit to height and center horizontally
-          drawHeight = obj.height;
-          drawWidth = drawHeight * spriteAspect;
-          drawX = obj.x + (obj.width - drawWidth) / 2;
-        } else {
-          // Sprite is taller - fit to width and center vertically
-          drawWidth = obj.width;
-          drawHeight = drawWidth / spriteAspect;
-          drawY = obj.y + (obj.height - drawHeight) / 2;
-        }
-        
-        ctx.drawImage(sprite, drawX, drawY, drawWidth, drawHeight);
-      } else {
-        // Fallback: draw colored rectangles
-        ctx.fillStyle = obj.type === "desk" ? "#8b5a3c" : obj.type === "chair" ? "#654321" : "#999";
-        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-        ctx.strokeStyle = "#666";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+    // Setup sit callback
+    scene.setSitCallback((objectId: string, action: 'sit' | 'stand') => {
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("player_sit", { objectId, action });
       }
     });
+  }, [phaserReady, isConnected, user.id, localPlayerSitting.isSitting]);
 
-    // Draw players
-    players.forEach((player) => {
-      const color = getPlayerColor(player.id);
-      const sprite = sprites.get("player");
-      const isSitting = player.isSitting || false;
-
-      if (sprite) {
-        ctx.drawImage(sprite, player.x, player.y, PLAYER_WIDTH, PLAYER_HEIGHT);
-      } else {
-        // Fallback: draw colored circle (smaller when sitting)
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        const radius = isSitting ? PLAYER_WIDTH / 3 : PLAYER_WIDTH / 2;
-        const centerY = isSitting ? player.y + PLAYER_HEIGHT / 2 + 5 : player.y + PLAYER_HEIGHT / 2;
-        ctx.arc(player.x + PLAYER_WIDTH / 2, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-
-      // Draw player name
-      ctx.fillStyle = "#000";
-      ctx.font = "12px sans-serif";
-      ctx.textAlign = "center";
-      const nameY = isSitting ? player.y - 10 : player.y - 5;
-      ctx.fillText(player.name, player.x + PLAYER_WIDTH / 2, nameY);
-    });
-
-    // Draw chat bubbles
-    chatMessages.forEach((msg, playerId) => {
-      const player = players.get(playerId);
-      if (!player) return;
-
-      const bubbleX = player.x + PLAYER_WIDTH / 2;
-      const bubbleY = player.y - 40;
-
-      // Measure text
-      ctx.font = "14px sans-serif";
-      ctx.textAlign = "left";
-      const textMetrics = ctx.measureText(msg.message);
-      const bubbleWidth = Math.max(textMetrics.width + 20, 80);
-      const bubbleHeight = 30;
-
-      // Draw bubble background
-      ctx.fillStyle = "#fff";
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 2;
-      roundRect(ctx, bubbleX - bubbleWidth / 2, bubbleY - bubbleHeight, bubbleWidth, bubbleHeight, 8);
-      ctx.fill();
-      ctx.stroke();
-
-      // Draw text
-      ctx.fillStyle = "#000";
-      ctx.fillText(msg.message, bubbleX - bubbleWidth / 2 + 10, bubbleY - bubbleHeight / 2 + 5);
-    });
-
-    ctx.restore();
-
-    animationFrameRef.current = requestAnimationFrame(render);
-  }, [camera, objects, players, chatMessages, sprites]);
-
-  // Start render loop
+  // Handle input focus to disable Phaser keyboard (like reference project)
   useEffect(() => {
-    if (!spritesLoaded) return;
+    const isInputElement = (target: HTMLElement) =>
+      target.tagName === "INPUT" ||
+      target.tagName === "TEXTAREA" ||
+      target.contentEditable === "true";
 
-    animationFrameRef.current = requestAnimationFrame(render);
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+    // Enable or disable Phaser keyboard handling
+    const togglePhaserKeyboard = (enabled: boolean) => {
+      const scene = phaserGameRef.current?.getScene();
+      if (scene?.input?.keyboard) {
+        scene.input.keyboard.manager.enabled = enabled;
       }
     };
-  }, [render, spritesLoaded]);
 
-  // Helper function to draw rounded rectangles
-  const roundRect = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radius: number
-  ) => {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  };
+    // Listener for when input is focused
+    const handleFocusIn = (event: FocusEvent) => {
+      if (isInputElement(event.target as HTMLElement)) {
+        togglePhaserKeyboard(false);
+      }
+    };
+
+    // Listener for when input is unfocused
+    const handleFocusOut = () => {
+      setTimeout(() => {
+        const activeElement = document.activeElement as HTMLElement;
+        const inputFocused = activeElement && isInputElement(activeElement);
+        togglePhaserKeyboard(!inputFocused);
+      }, 10);
+    };
+
+    // Listener for click on canvas
+    const handleCanvasClick = (event: MouseEvent) => {
+      if ((event.target as HTMLElement).tagName === "CANVAS") {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && isInputElement(activeElement)) {
+          activeElement.blur();
+        }
+      }
+    };
+
+    document.addEventListener("focusin", handleFocusIn, true);
+    document.addEventListener("focusout", handleFocusOut, true);
+    const gameContainer = document.getElementById("phaser-container");
+    gameContainer?.addEventListener("click", handleCanvasClick);
+
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn, true);
+      document.removeEventListener("focusout", handleFocusOut, true);
+      gameContainer?.removeEventListener("click", handleCanvasClick);
+    };
+  }, [phaserReady]);
+
 
   // Handle chat input
   const handleSendChat = (e: React.FormEvent) => {
@@ -512,6 +339,12 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
       message: currentChatInput.trim().substring(0, 100),
     });
     setCurrentChatInput("");
+    
+    // Blur the input after sending
+    const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+    if (input) {
+      input.blur();
+    }
   };
 
   if (!isConnected) {
@@ -527,17 +360,24 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
 
   return (
     <div className="relative w-full h-screen bg-background flex flex-col">
-      {/* Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
+      {/* Phaser Container */}
+      <div
+        id="phaser-container"
+        ref={phaserContainerRef}
         className="w-full h-full"
-        style={{ display: "block" }}
+        style={{ minHeight: "100vh", backgroundColor: "#e8e8e8" }}
       />
+      {!phaserReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent"></div>
+            <p className="text-sm text-muted-foreground">Loading Phaser...</p>
+          </div>
+        </div>
+      )}
 
-      {/* Chat Input */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4">
+      {/* Chat Input - positioned above the banner */}
+      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4">
         <form onSubmit={handleSendChat} className="flex gap-2">
           <input
             type="text"
@@ -569,6 +409,34 @@ export function OfficeCanvas({ user }: OfficeCanvasProps) {
       <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-sm border rounded-lg p-3 text-sm">
         <p>
           Players: <span className="font-semibold">{players.size}</span>
+        </p>
+        <p className="mt-1 text-xs">
+          Phaser: <span className={phaserReady ? "text-green-500" : "text-yellow-500"}>{phaserReady ? "Ready" : "Loading..."}</span>
+        </p>
+      </div>
+
+      {/* Attribution Banner */}
+      <div className="absolute bottom-0 left-0 right-0 bg-card/90 backdrop-blur-sm border-t border-border px-4 py-2 text-center text-xs text-muted-foreground">
+        <p>
+          Implementation of{" "}
+          <a
+            href="https://github.com/CondorCoders/cafe"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            CondorCoders - Café Virtual
+          </a>
+          {" "}in{" "}
+          <a
+            href="https://www.loly.dev/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            Loly Framework
+          </a>
+          {" "}<span className="text-purple-500">💜</span>
         </p>
       </div>
     </div>

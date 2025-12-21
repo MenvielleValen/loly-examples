@@ -1,128 +1,154 @@
-# Loly Office - Virtual Office
+# Loly Office Example
 
-Una oficina virtual 2D con Canvas donde múltiples usuarios pueden moverse, interactuar con objetos y chatear mediante globos de diálogo en tiempo real usando WebSockets.
+A real-time virtual office built with [Loly Framework](https://loly.dev/), demonstrating Phaser 3 integration, WebSocket communication, and real-time multiplayer features.
 
-## Características
+## Features Demonstrated
 
-- 🎮 **Oficina Virtual 2D**: Canvas HTML5 nativo para renderizado de la oficina y personajes
-- 👥 **Multi-usuario en tiempo real**: WebSockets con Loly Framework para sincronización
-- 💬 **Chat con globos de diálogo**: Mensajes aparecen sobre los personajes
-- 🎨 **Sistema de sprites**: Soporte para sprites de personajes y objetos (con fallback a formas simples)
-- 🔐 **Autenticación simple**: Login con nombre o entrada anónima (Anonymous0001, etc.)
-- 🎯 **Colisiones**: Sistema de detección de colisiones con objetos y paredes
-- ⌨️ **Controles**: WASD o flechas para movimiento
+- 🎮 **Phaser 3 Integration** - 2D game engine with Matter.js physics for smooth character movement and collision detection
+- 👥 **Real-time Multiplayer** - WebSocket synchronization for multiple users with position and animation sync
+- 💬 **Chat System** - In-game chat bubbles above player avatars
+- 🎨 **Sprite Animations** - Character animations with walk/idle states (up, down, left, right)
+- 🔐 **Simple Authentication** - Cookie-based user sessions with anonymous support
+- 🗺️ **Tilemap Rendering** - Tiled map integration with collision detection
+- 🪑 **Interactive Objects** - Sit/stand on chairs with position synchronization
 
-## Tecnologías
-
-- **Loly Framework**: Framework full-stack React con WebSockets
-- **Canvas 2D API**: Renderizado nativo sin librerías adicionales
-- **TypeScript**: Type safety completo
-- **Tailwind CSS**: Estilos modernos
-- **Socket.IO**: Comunicación en tiempo real (via Loly Framework)
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- npm o pnpm
+- npm or pnpm
 
 ### Installation
 
-1. Instalar dependencias:
-
 ```bash
+# Install dependencies
 npm install
-```
 
-2. Iniciar servidor de desarrollo:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:3000`.
+The app will be available at `http://localhost:3000`.
 
-### Build para Producción
+### Build for Production
 
 ```bash
 npm run build
 npm start
 ```
 
-## Uso
-
-1. **Entrar a la oficina**: 
-   - Ingresa tu nombre o haz clic en "Enter as Anonymous" para un nombre automático
-   
-2. **Moverse**:
-   - Usa **WASD** o **flechas del teclado** para mover tu personaje
-   
-3. **Chatear**:
-   - Escribe un mensaje en el input inferior y presiona Enter
-   - Los mensajes aparecen como globos sobre los personajes
-   
-4. **Interactuar**:
-   - Click en objetos interactuables (escritorios, sillas) para interactuar
-
-## Estructura del Proyecto
+## Project Structure
 
 ```
 loly-office/
 ├── app/
-│   ├── page.tsx                    # Página principal
-│   ├── api/user/login/route.ts     # API para login/anónimo
-│   └── wss/office/events.ts        # WebSocket events
+│   ├── api/user/login/    # User authentication API
+│   ├── wss/office/        # WebSocket events for real-time sync
+│   ├── layout.tsx         # Root layout with theme provider
+│   ├── page.tsx           # Main page with login/office view
+│   └── styles.css         # Global styles
 ├── components/
-│   ├── office/
-│   │   └── OfficeCanvas.tsx        # Componente principal del canvas
-│   └── shared/
-│       └── UserLogin.tsx           # Componente de login
-├── lib/office/
-│   ├── types.ts                    # TypeScript types
-│   ├── constants.ts                # Constantes y configuración
-│   └── utils.ts                    # Utilidades (colisiones, carga de sprites)
-└── public/sprites/                 # Sprites (opcional)
-    ├── characters/                 # Sprites de personajes
-    └── office/                     # Sprites del escenario
+│   ├── office/            # Phaser game component
+│   │   └── OfficeCanvas.tsx
+│   ├── shared/            # Shared components
+│   │   ├── UserLogin.tsx
+│   │   └── theme-switch.tsx
+│   └── ui/                # Reusable UI components
+├── lib/
+│   ├── phaser/            # Phaser configuration and scenes
+│   │   ├── config.ts      # Phaser game configuration
+│   │   ├── PhaserGame.ts  # Phaser game wrapper
+│   │   └── scenes/
+│   │       └── OfficeScene.ts  # Main game scene
+│   └── office/            # Office game logic
+│       ├── types.ts       # TypeScript types
+│       ├── constants.ts   # Game constants
+│       └── utils.ts       # Utility functions
+└── public/assets/         # Game assets
+    ├── characters/        # Character spritesheets
+    ├── tilemap.json       # Tiled map data
+    └── music/             # Background music and sounds
 ```
 
-## Sprites
+## Key Implementation Details
 
-El proyecto soporta sprites pero funciona sin ellos usando formas simples (círculos para personajes, rectángulos para objetos).
+### Phaser Integration
 
-Para agregar sprites:
-1. Coloca las imágenes PNG en `public/sprites/`
-2. Referencia las rutas en `lib/office/constants.ts` → `SPRITE_PATHS`
+The project uses Phaser 3 with Matter.js physics for smooth character movement and collision detection. The integration demonstrates:
 
-## Configuración WebSocket
+- **Dynamic imports** to avoid SSR issues with browser-only libraries
+- **Matter.js physics** for realistic movement and collisions
+- **Sprite animations** with frame-based animation system
+- **Tilemap rendering** with multiple layers and collision detection
+- **Camera following** for smooth player tracking
 
-La configuración de WebSocket está en `loly.config.ts`:
-- Desarrollo: `allowedOrigins: "*"` (permisivo)
-- Producción: Configurar dominios específicos
+### WebSocket Events
 
-## Eventos WebSocket
+Real-time synchronization through Loly Framework WebSocket routes:
 
-Todos los eventos usan nombres en **lowercase** (requisito de Loly Framework):
+- `player_join` - Join the office and receive initial state
+- `player_move` - Position updates with animation synchronization
+- `player_chat` - Chat messages displayed as bubbles above players
+- `player_sit` - Sit/stand on chairs with position updates
+- `office_state` - Initial state broadcast to new players
+- `player_joined` - Notification when a new player joins
+- `player_leave` - Notification when a player disconnects
 
-- `player_join`: Unirse a la oficina
-- `player_move`: Actualizar posición (x, y)
-- `player_chat`: Enviar mensaje de chat
-- `object_interact`: Interactuar con objeto
-- `office_state`: Estado inicial de la oficina (recibido por nuevos jugadores)
-- `player_joined`: Notificación de nuevo jugador (broadcast)
-- `player_leave`: Notificación de jugador que se fue (broadcast)
+### Assets
 
-## Desarrollo
+- **Tilemaps**: Tiled JSON format (`public/assets/tilemap.json`)
+- **Sprites**: Character spritesheets with 64x64 frame size
+  - `luis/walk.png` and `luis/dance.png`
+  - `sofia/walk.png` and `sofia/dance.png`
+- **Music**: Background music and sound effects in `public/music/`
 
-### Agregar nuevos objetos
+### Controls
 
-Edita `lib/office/constants.ts` → `DEFAULT_OFFICE_OBJECTS` para agregar nuevos objetos a la oficina.
+- **WASD** or **Arrow Keys** - Move character
+- **E** - Sit/stand on nearby chairs
+- **Type in chat input** - Send chat messages
 
-### Personalizar oficina
+## Technical Highlights
 
-Modifica el layout editando `DEFAULT_OFFICE_OBJECTS` en `lib/office/constants.ts`.
+### SSR-Safe Phaser Loading
 
-## Licencia
+Phaser is loaded dynamically to avoid server-side rendering issues:
+
+```typescript
+// Dynamic import in useEffect
+const { PhaserGame } = await import("@/lib/phaser/PhaserGame");
+const game = new PhaserGame();
+await game.init("phaser-container");
+```
+
+### Animation Synchronization
+
+Player animations are synchronized across all clients:
+
+- Local player animations are sent via WebSocket
+- Remote players receive and play the correct animation
+- Idle states are maintained based on last facing direction
+
+### Interpolation
+
+Remote player movement uses interpolation for smooth transitions:
+
+- Position updates are interpolated between server updates
+- Reduces jitter and provides smooth movement
+- Optimized depth updates for performance
+
+## Learn More
+
+- [Loly Framework Documentation](https://loly.dev/)
+- [Loly Framework GitHub](https://github.com/MenvielleValen/loly-framework)
+- [Phaser 3 Documentation](https://phaser.io/)
+- [Matter.js Documentation](https://brm.io/matter-js/)
+
+## Attribution
+
+This is an implementation of [CondorCoders Café Virtual](https://github.com/CondorCoders/cafe) in [Loly Framework](https://loly.dev/) 💜
+
+## License
 
 ISC

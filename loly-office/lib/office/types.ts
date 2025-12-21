@@ -10,6 +10,7 @@ export interface Player {
   color?: string; // Color for the player (if not using sprites initially)
   isSitting?: boolean; // Whether the player is sitting
   sittingOn?: string; // ID of the object the player is sitting on
+  animation?: string; // Current animation key (e.g., "luis-up", "sofia-idle-down")
 }
 
 export interface ChatMessage {

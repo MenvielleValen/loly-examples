@@ -9,19 +9,46 @@ const DEFAULT_CONFIG: ServerConfig = {
     strictMax: 5,
     strictPatterns: [],
   },
+  security: {
+    contentSecurityPolicy: {
+      directives: {
+        // Allow blob: for images (Phaser uses blob URLs for loaded assets)
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        // Allow blob: for fetch/XHR and WebSockets
+        connectSrc: ["'self'", "ws:", "wss:", "https:", "blob:"],
+        // Allow blob: for media (video/audio)
+        mediaSrc: ["'self'", "https:", "blob:"],
+        // Allow unsafe-inline and unsafe-eval for scripts (Phaser needs this)
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        // Allow unsafe-inline for styles
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        // Allow fonts
+        fontSrc: ["'self'", "data:"],
+      },
+    },
+  },
 };
 
 // Configuración simple - el framework auto-detecta localhost
 // Solo configura esto si despliegas a producción real
 const PROD_CONFIG: ServerConfig = {
-  // En producción real, descomenta y configura tu dominio:
-  // corsOrigin: ["https://tu-dominio.com"],
+  corsOrigin: ["https://loly-office.onrender.com"],
   realtime: {
     enabled: true,
-    // En producción, configurar allowedOrigins específicos:
-    // allowedOrigins: ["https://tu-dominio.com"],
-    allowedOrigins: "*", // Temporal para desarrollo
-    // Rate limiting para WebSocket connections
+    
+    // Socket.IO settings
+    path: "/wss",
+    transports: ["websocket", "polling"],
+    
+    // Security - only allow connections from production domain
+    allowedOrigins: ["https://loly-office.onrender.com"],
+    
+    // Single instance mode (no Redis required for horizontal scaling)
+    scale: {
+      mode: "single",
+    },
+    
+    // Rate limiting for WebSocket connections
     limits: {
       connectionsPerIp: 20,
       eventsPerSecond: 30,

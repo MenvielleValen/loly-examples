@@ -14,6 +14,7 @@ const chatMessages = new Map<string, ChatMessage>();
 const playerMoveSchema = z.object({
   x: z.number().min(0),
   y: z.number().min(0),
+  animation: z.string().optional(), // Current animation key
 });
 
 // Schema for chat message
@@ -105,17 +106,22 @@ export default defineWssRoute({
 
         // Update or create player position
         let player = players.get(id);
+        const { animation } = ctx.data;
         if (!player && ctx.user) {
           player = {
             id,
             name: ctx.user.name,
             x,
             y,
+            animation,
           };
           players.set(id, player);
         } else if (player) {
           player.x = x;
           player.y = y;
+          if (animation) {
+            player.animation = animation;
+          }
           players.set(id, player);
         }
 
@@ -125,6 +131,7 @@ export default defineWssRoute({
             playerId: id,
             x,
             y,
+            animation: player.animation,
           });
         }
       },
