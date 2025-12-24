@@ -2,13 +2,14 @@
   "name": "loly-office",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "loly dev",
     "build": "loly build",
     "start": "loly start"
   },
   "dependencies": {
-    "@lolyjs/core": "0.2.0-alpha.28",
+    "@lolyjs/core": "0.3.0-alpha.4",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@types/uuid": "^10.0.0",
