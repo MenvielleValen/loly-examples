@@ -6,7 +6,7 @@ export const getServerSideProps: ServerLoader = async (ctx) => {
     const user = ctx.locals?.user || null;
 
     if (!user || !session) {
-        return ctx.Redirect("/", true);
+        return ctx.Redirect("/");
     }
   
     return {

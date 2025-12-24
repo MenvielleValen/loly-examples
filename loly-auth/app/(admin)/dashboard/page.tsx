@@ -11,7 +11,7 @@ export default function DashboardPage({ user }: { user: User }) {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Bienvenido de vuelta, {user.name || user.email}
+          Welcome back, {user.name || user.email}
         </p>
       </div>
 
@@ -19,7 +19,7 @@ export default function DashboardPage({ user }: { user: User }) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Usuarios Totales</h3>
+            <h3 className="text-sm font-medium">Total Users</h3>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -38,13 +38,13 @@ export default function DashboardPage({ user }: { user: User }) {
           </div>
           <div className="text-2xl font-bold">1,234</div>
           <p className="text-xs text-muted-foreground">
-            +12% desde el mes pasado
+            +12% from last month
           </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Sesiones Activas</h3>
+            <h3 className="text-sm font-medium">Active Sessions</h3>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -60,13 +60,13 @@ export default function DashboardPage({ user }: { user: User }) {
           </div>
           <div className="text-2xl font-bold">456</div>
           <p className="text-xs text-muted-foreground">
-            +23% desde el mes pasado
+            +23% from last month
           </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Solicitudes</h3>
+            <h3 className="text-sm font-medium">Requests</h3>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -85,13 +85,13 @@ export default function DashboardPage({ user }: { user: User }) {
           </div>
           <div className="text-2xl font-bold">89</div>
           <p className="text-xs text-muted-foreground">
-            +5 nuevas hoy
+            +5 new today
           </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6">
           <div className="flex items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Tasa de Conversión</h3>
+            <h3 className="text-sm font-medium">Conversion Rate</h3>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -107,7 +107,7 @@ export default function DashboardPage({ user }: { user: User }) {
           </div>
           <div className="text-2xl font-bold">24.8%</div>
           <p className="text-xs text-muted-foreground">
-            +2.1% desde el mes pasado
+            +2.1% from last month
           </p>
         </div>
       </div>
@@ -115,28 +115,28 @@ export default function DashboardPage({ user }: { user: User }) {
       {/* Recent Activity */}
       <div className="rounded-lg border border-border bg-card">
         <div className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Actividad Reciente</h2>
+          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <p className="font-medium">Nuevo usuario registrado</p>
-                <p className="text-sm text-muted-foreground">hace 5 minutos</p>
+                <p className="font-medium">New user registered</p>
+                <p className="text-sm text-muted-foreground">5 minutes ago</p>
               </div>
               <span className="text-sm text-muted-foreground">user@example.com</span>
             </div>
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <p className="font-medium">Configuración actualizada</p>
-                <p className="text-sm text-muted-foreground">hace 1 hora</p>
+                <p className="font-medium">Settings updated</p>
+                <p className="text-sm text-muted-foreground">1 hour ago</p>
               </div>
-              <span className="text-sm text-muted-foreground">Sistema</span>
+              <span className="text-sm text-muted-foreground">System</span>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Backup completado</p>
-                <p className="text-sm text-muted-foreground">hace 3 horas</p>
+                <p className="font-medium">Backup completed</p>
+                <p className="text-sm text-muted-foreground">3 hours ago</p>
               </div>
-              <span className="text-sm text-muted-foreground">Automático</span>
+              <span className="text-sm text-muted-foreground">Automatic</span>
             </div>
           </div>
         </div>

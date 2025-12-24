@@ -6,26 +6,26 @@ type User = {
 };
 
 export default function UsersPage({ user }: { user: User }) {
-  // Datos de ejemplo
+  // Example data
   const users = [
-    { id: "1", name: "Juan Pérez", email: "juan@example.com", role: "Admin", status: "Activo", lastLogin: "Hace 2 horas" },
-    { id: "2", name: "María García", email: "maria@example.com", role: "Usuario", status: "Activo", lastLogin: "Hace 1 día" },
-    { id: "3", name: "Carlos López", email: "carlos@example.com", role: "Usuario", status: "Inactivo", lastLogin: "Hace 1 semana" },
-    { id: "4", name: "Ana Martínez", email: "ana@example.com", role: "Editor", status: "Activo", lastLogin: "Hace 3 horas" },
-    { id: "5", name: "Luis Rodríguez", email: "luis@example.com", role: "Usuario", status: "Activo", lastLogin: "Hace 5 minutos" },
+    { id: "1", name: "John Doe", email: "john@example.com", role: "Admin", status: "Active", lastLogin: "2 hours ago" },
+    { id: "2", name: "Jane Smith", email: "jane@example.com", role: "User", status: "Active", lastLogin: "1 day ago" },
+    { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "User", status: "Inactive", lastLogin: "1 week ago" },
+    { id: "4", name: "Alice Williams", email: "alice@example.com", role: "Editor", status: "Active", lastLogin: "3 hours ago" },
+    { id: "5", name: "Charlie Brown", email: "charlie@example.com", role: "User", status: "Active", lastLogin: "5 minutes ago" },
   ];
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Usuarios</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
           <p className="text-muted-foreground mt-2">
-            Gestiona todos los usuarios del sistema
+            Manage all system users
           </p>
         </div>
         <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity">
-          + Nuevo Usuario
+          + New User
         </button>
       </div>
 
@@ -35,12 +35,12 @@ export default function UsersPage({ user }: { user: User }) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left p-4 font-medium">Usuario</th>
+                <th className="text-left p-4 font-medium">User</th>
                 <th className="text-left p-4 font-medium">Email</th>
-                <th className="text-left p-4 font-medium">Rol</th>
-                <th className="text-left p-4 font-medium">Estado</th>
-                <th className="text-left p-4 font-medium">Último Acceso</th>
-                <th className="text-right p-4 font-medium">Acciones</th>
+                <th className="text-left p-4 font-medium">Role</th>
+                <th className="text-left p-4 font-medium">Status</th>
+                <th className="text-left p-4 font-medium">Last Access</th>
+                <th className="text-right p-4 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -58,7 +58,7 @@ export default function UsersPage({ user }: { user: User }) {
                   <td className="p-4">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${
-                        u.status === "Activo"
+                        u.status === "Active"
                           ? "bg-green-500/20 text-green-600 dark:text-green-400"
                           : "bg-gray-500/20 text-gray-600 dark:text-gray-400"
                       }`}
@@ -69,8 +69,8 @@ export default function UsersPage({ user }: { user: User }) {
                   <td className="p-4 text-muted-foreground text-sm">{u.lastLogin}</td>
                   <td className="p-4">
                     <div className="flex justify-end gap-2">
-                      <button className="text-sm text-primary hover:underline">Editar</button>
-                      <button className="text-sm text-destructive hover:underline">Eliminar</button>
+                      <button className="text-sm text-primary hover:underline">Edit</button>
+                      <button className="text-sm text-destructive hover:underline">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -83,14 +83,14 @@ export default function UsersPage({ user }: { user: User }) {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Mostrando 1-5 de {users.length} usuarios
+          Showing 1-5 of {users.length} users
         </p>
         <div className="flex gap-2">
           <button className="px-3 py-1 border border-border rounded-md hover:bg-accent transition-colors">
-            Anterior
+            Previous
           </button>
           <button className="px-3 py-1 border border-border rounded-md hover:bg-accent transition-colors">
-            Siguiente
+            Next
           </button>
         </div>
       </div>

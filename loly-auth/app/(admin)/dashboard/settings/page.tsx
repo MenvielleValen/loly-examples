@@ -10,7 +10,7 @@ type User = {
 export default function SettingsPage({ user }: { user: User }) {
   const [appName, setAppName] = useState("Loly Auth");
   const [description, setDescription] = useState("A modern web application built with Loly Framework and Better Auth.");
-  const [language, setLanguage] = useState("Español");
+  const [language, setLanguage] = useState("English");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -37,18 +37,18 @@ export default function SettingsPage({ user }: { user: User }) {
       if (!response.ok) {
         setMessage({
           type: "error",
-          text: data.message || "Error al guardar los cambios",
+          text: data.message || "Error saving changes",
         });
       } else {
         setMessage({
           type: "success",
-          text: data.message || "Cambios guardados exitosamente",
+          text: data.message || "Changes saved successfully",
         });
       }
     } catch (error) {
       setMessage({
         type: "error",
-        text: "Error de conexión al guardar los cambios",
+        text: "Connection error while saving changes",
       });
     } finally {
       setIsLoading(false);
@@ -58,20 +58,20 @@ export default function SettingsPage({ user }: { user: User }) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Gestiona la configuración de tu aplicación
+          Manage your application settings
         </p>
       </div>
 
       <div className="space-y-6">
         {/* General Settings */}
         <form onSubmit={handleSave} className="rounded-lg border border-border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Configuración General</h2>
+          <h2 className="text-xl font-semibold mb-4">General Settings</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Nombre de la Aplicación
+                Application Name
               </label>
               <input
                 type="text"
@@ -82,7 +82,7 @@ export default function SettingsPage({ user }: { user: User }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Descripción
+                Description
               </label>
               <textarea
                 rows={3}
@@ -93,15 +93,15 @@ export default function SettingsPage({ user }: { user: User }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                Idioma por Defecto
+                Default Language
               </label>
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                <option>Español</option>
                 <option>English</option>
+                <option>Español</option>
                 <option>Français</option>
               </select>
             </div>
@@ -121,20 +121,20 @@ export default function SettingsPage({ user }: { user: User }) {
               disabled={isLoading}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Guardando..." : "Guardar Cambios"}
+              {isLoading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
 
         {/* Security Settings */}
         <div className="rounded-lg border border-border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Seguridad</h2>
+          <h2 className="text-xl font-semibold mb-4">Security</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Autenticación de Dos Factores</p>
+                <p className="font-medium">Two-Factor Authentication</p>
                 <p className="text-sm text-muted-foreground">
-                  Requiere un código adicional al iniciar sesión
+                  Requires an additional code when signing in
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -144,9 +144,9 @@ export default function SettingsPage({ user }: { user: User }) {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Sesiones Múltiples</p>
+                <p className="font-medium">Multiple Sessions</p>
                 <p className="text-sm text-muted-foreground">
-                  Permitir múltiples sesiones simultáneas
+                  Allow multiple simultaneous sessions
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -156,9 +156,9 @@ export default function SettingsPage({ user }: { user: User }) {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Recordar Sesión</p>
+                <p className="font-medium">Remember Session</p>
                 <p className="text-sm text-muted-foreground">
-                  Mantener la sesión activa por 30 días
+                  Keep session active for 30 days
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -171,13 +171,13 @@ export default function SettingsPage({ user }: { user: User }) {
 
         {/* Email Settings */}
         <div className="rounded-lg border border-border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Notificaciones por Email</h2>
+          <h2 className="text-xl font-semibold mb-4">Email Notifications</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Nuevos Usuarios</p>
+                <p className="font-medium">New Users</p>
                 <p className="text-sm text-muted-foreground">
-                  Recibir notificaciones cuando se registre un nuevo usuario
+                  Receive notifications when a new user registers
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -187,9 +187,9 @@ export default function SettingsPage({ user }: { user: User }) {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Alertas de Seguridad</p>
+                <p className="font-medium">Security Alerts</p>
                 <p className="text-sm text-muted-foreground">
-                  Notificaciones sobre actividad sospechosa
+                  Notifications about suspicious activity
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">

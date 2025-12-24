@@ -1,17 +1,10 @@
 import { ServerLoader } from "@lolyjs/core";
 
 export const getServerSideProps: ServerLoader = async (ctx) => {
-  const session = ctx.locals?.session || null;
-  const user = ctx.locals?.user || null;
-
-  if (!user || !session) {
-    return ctx.Redirect("/", true);
-  }
-
+  // Session validation and user are handled by layout.server.hook.ts
+  // User is available through the layout tree
   return {
-    props: {
-      user,
-    },
+    props: {},
   };
 };
 

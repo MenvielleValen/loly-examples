@@ -31,13 +31,13 @@ const DEFAULT_CONFIG: ServerConfig = {
   },
 };
 
-// Configuración simple - el framework auto-detecta localhost
-// Solo configura esto si despliegas a producción real
+// Simple configuration - the framework auto-detects localhost
+// Only configure this if you're deploying to production
 const PROD_CONFIG: ServerConfig = {
-  // En producción real, descomenta y configura tu dominio:
-  // corsOrigin: ["https://tu-dominio.com"],
+  // In real production, uncomment and configure your domain:
+  // corsOrigin: ["https://your-domain.com"],
   // realtime: {
-  //   allowedOrigins: ["https://tu-dominio.com"],
+  //   allowedOrigins: ["https://your-domain.com"],
   // },
 };
 
